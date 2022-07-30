@@ -1,0 +1,29 @@
+.wpsf-tab .postbox {
+    margin: 20px 0;
+    border-radius: 0;
+    border: none;
+    background: #fff;
+}
+
+.wpsf-tab .postbox h2 {
+    padding: 15px 20px;
+    border: none;
+    margin: 0 0 10px;
+    background: #52accc;
+    color: #fff;
+    font-size: 1.25em;
+}
+
+.wpsf-tab .postbox h2:first-child {
+    border-radius: 0;
+}
+
+.wpsf-section label.switch input:checked + .slider {
+    background-color: #52accc;
+}
+
+.wpsf-nav__item--active:after {
+    height: 6px;
+    background: #52accc;
+    border-radius: 0;
+}
