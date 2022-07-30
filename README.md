@@ -1,1 +1,1 @@
-WordPress Settings Framework
+Settings Framework for ClassicPress
