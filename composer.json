@@ -1,7 +1,6 @@
 {
   "name": "erichk4/settings-framework",
   "description": "Settings Framework",
-  "minimum-stability": "stable",
   "license": "GPL-2.0-or-later",
   "authors": [
     {
