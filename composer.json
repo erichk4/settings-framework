@@ -2,7 +2,7 @@
   "name": "erichk4/settings-framework",
   "description": "Settings Framework",
   "minimum-stability": "stable",
-  "license": "GPL GPL-2.0-or-later",
+  "license": "GPL-2.0-or-later",
   "authors": [
     {
       "name": "Erich",
