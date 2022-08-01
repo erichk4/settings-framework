@@ -93,7 +93,7 @@
          * @param string $skin
          * @param null|object $caller
          */
-        public function __construct( $settings_file = null, $option_group = false, $skin = '', $caller = null )
+        public function __construct( $settings_file = null, $option_group = false, string $skin = '', $caller = null )
         {
             $this->option_group = $option_group;
             $this->skin = sanitize_file_name( $skin );
@@ -347,7 +347,7 @@
         /**
          * Displays the "section_description" if specified in $this->settings
          *
-         * @param array callback args from add_settings_section()
+         * @param array $args callback args from add_settings_section()
          */
         private function section_intro( $args )
         {
@@ -403,7 +403,7 @@
                                     {
                                         $link_url = ( isset( $field[ 'link' ][ 'url' ] ) ) ? esc_html( $field[ 'link' ][ 'url' ] ) : '';
                                         $link_text = ( isset( $field[ 'link' ][ 'text' ] ) ) ? esc_html( $field[ 'link' ][ 'text' ] ) : esc_html__( 'Learn More', 'wpsf' );
-                                        $link_external = !( isset( $field[ 'link' ][ 'external' ] ) ) || (bool)$field[ 'link' ][ 'external' ];
+                                        $link_external = !( isset( $field[ 'link' ][ 'external' ] ) ) || $field[ 'link' ][ 'external' ];
                                         $link_type = ( isset( $field[ 'link' ][ 'type' ] ) ) ? esc_attr( $field[ 'link' ][ 'type' ] ) : 'tooltip';
                                         $link_target = ( $link_external ) ? ' target="_blank"' : '';
 
@@ -1128,7 +1128,7 @@
             {
                 if ( is_array( $args[ 'output' ] ) && array_key_exists( 'class_name', $args[ 'output' ] ) && array_key_exists( 'function_name', $args[ 'output' ] ) )
                 {
-                    if ( get_class( $this->caller ) == $args[ 'output' ][ 'class_name' ] )
+                    if ( isset( $this->caller ) && get_class( $this->caller ) == $args[ 'output' ][ 'class_name' ] )
                     {
                         $result = call_user_func( array( $this->caller, $args[ 'output' ][ 'function_name' ] ), $args );
 
