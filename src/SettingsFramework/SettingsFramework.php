@@ -8,7 +8,7 @@
      * @license      GPL 2.0
      */
 
-    namespace SettingsFramework;
+    namespace kmedv\SettingsFramework;
 
     use WP_Error;
 
@@ -90,8 +90,8 @@
          *
          * @param null|string $settings_file Path to a settings file, or null if you pass the option_group manually and construct your settings with a filter.
          * @param bool|string $option_group Option group name, usually a short slug.
-         * @param string $skin
-         * @param null|object $caller
+         * @param string $skin Skin Name 
+         * @param null|object $caller Caller object
          */
         public function __construct( $settings_file = null, $option_group = false, string $skin = '', $caller = null )
         {
