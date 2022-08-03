@@ -6,7 +6,7 @@
      * @author       Gilbert Pellegrom
      * @author       James Kemp
      * @link         https://github.com/erichk4/WordPress-Setings-Framework
-     * @version      1.0.1
+     * @version      1.0.2
      * @license      GPL 2.0
      */
 
