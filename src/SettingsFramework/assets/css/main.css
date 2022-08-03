@@ -109,9 +109,10 @@
 }
 
 .wpsf-nav__item--active:after {
-	height: 4px;
-	background: #2271b6;
-	border-radius: 4px 4px 0 0;
+    height: 6px;
+	/*noinspection CssUnresolvedCustomProperty*/
+	background: var(--sf_main_color);
+    border-radius: 0;
 }
 
 @media screen and (max-width: 600px) {
@@ -202,10 +203,10 @@ p.submit {
 }
 
 .wpsf-tab .postbox {
-	margin: 20px 0;
-	border-radius: 8px;
-	border: none;
-	background: #fff;
+    margin: 20px 0;
+    border-radius: 0;
+    border: none;
+    background: #fff;
 }
 
 .wpsf-tab .postbox:after {
@@ -214,16 +215,17 @@ p.submit {
 }
 
 .wpsf-tab .postbox h2 {
-	padding: 15px 20px;
-	border: none;
-	margin: 0 0 10px;
-	background: #23282d;
-	color: #fff;
-	font-size: 1.25em;
+    padding: 15px 20px;
+    border: none;
+    margin: 0 0 10px;
+	/*noinspection CssUnresolvedCustomProperty*/
+	background: var(--sf_main_color);
+    color: #fff;
+    font-size: 1.25em;
 }
 
 .wpsf-tab .postbox h2:first-child {
-	border-radius: 8px 8px 0 0;
+    border-radius: 0;
 }
 
 .wpsf-tab .postbox h3:first-child {
@@ -425,7 +427,7 @@ p.submit {
 	margin-top: -3px;
 }
 
-.wpsf-section label.switch input { 
+.wpsf-section label.switch input {
 	opacity: 0;
 	width: 0;
 	height: 0;
@@ -458,7 +460,8 @@ p.submit {
 }
 
 .wpsf-section label.switch input:checked + .slider {
-	background-color: #2196F3;
+	/*noinspection CssUnresolvedCustomProperty*/
+	background-color: var(--sf_main_color);
 }
 
 .wpsf-section label.switch input:checked + .slider:before {

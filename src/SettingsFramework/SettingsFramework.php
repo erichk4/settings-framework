@@ -2,9 +2,11 @@
     /**
      * Settings Framework
      *
-     * @author       Erich, Gilbert Pellegrom, James Kemp
+     * @author       Erich Munz
+     * @author       Gilbert Pellegrom
+     * @author       James Kemp
      * @link         https://github.com/erichk4/WordPress-Setings-Framework
-     * @version      1.0.0
+     * @version      1.0.1
      * @license      GPL 2.0
      */
 
@@ -19,7 +21,7 @@
     {
         /**
          * @access private
-         * @var array
+         * @var mixed
          */
         private $settings_wrapper;
 
@@ -75,28 +77,22 @@
             'subfields'   => array(),
         );
 
-        /**
-         * @var mixed|string
-         */
-        private $skin;
-
-        /**
+         /**
          * @var mixed|null
          */
         private $caller;
 
+
         /**
-         * WordPressSettingsFramework constructor.
+         * SettingsFramework constructor.
          *
          * @param null|string $settings_file Path to a settings file, or null if you pass the option_group manually and construct your settings with a filter.
          * @param bool|string $option_group Option group name, usually a short slug.
-         * @param string $skin Skin Name 
          * @param null|object $caller Caller object
          */
-        public function __construct( $settings_file = null, $option_group = false, string $skin = '', $caller = null )
+        public function __construct( $settings_file = null, $option_group = false, $caller = null )
         {
             $this->option_group = $option_group;
-            $this->skin = sanitize_file_name( $skin );
             $this->caller = $caller;
 
             if ( $settings_file )
@@ -137,6 +133,7 @@
                     {
                         add_action( 'admin_notices', array( $this, 'admin_notices' ) );
                     }
+
                     add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
                 }
 
@@ -153,17 +150,20 @@
             }
         }
 
+
         /**
          * Construct Settings.
-         * @return bool|WP_Error
+         * @return void
          */
-        public function construct_settings()
+        private function construct_settings(): void
         {
+
             $this->settings_wrapper = apply_filters( 'wpsf_register_settings_' . $this->option_group, array() );
 
             if ( !is_array( $this->settings_wrapper ) )
             {
-                return new WP_Error( 'broke', esc_html__( 'Settings Framework: settings must be an array', 'wpsf' ) );
+                new WP_Error( 'broke', esc_html__( 'Settings Framework: settings must be an array', 'wpsf' ) );
+                return;
             }
 
             // If "sections" is set, this settings group probably has tabs
@@ -179,7 +179,6 @@
             }
 
             $this->settings_page[ 'slug' ] = sprintf( '%s-settings', str_replace( '_', '-', $this->option_group ) );
-            return true;
         }
 
         /**
@@ -195,10 +194,31 @@
         /**
          * Registers the internal WordPress settings
          */
-        private function admin_init()
+        public function admin_init()
         {
             register_setting( $this->option_group, $this->option_group . '_settings', array( $this, 'settings_validate' ) );
             $this->process_settings();
+        }
+
+        /**
+         * @return string
+         */
+        public function get_skin_styles(): string
+        {
+            // styles
+            global $_wp_admin_css_colors;
+
+            $current_color = get_user_option( 'admin_color', get_current_user_id() );
+
+            $color_val = array_key_exists( $current_color, $_wp_admin_css_colors )
+                ? $_wp_admin_css_colors[$current_color]->colors[ 2 ]
+                : $_wp_admin_css_colors['fresh']->colors[ 2 ];
+
+            return '<style>
+                :root {
+                  --sf_main_color: ' . $color_val . ';
+                }
+              </style>';
         }
 
         /**
@@ -246,13 +266,14 @@
                     apply_filters( 'wpsf_menu_position_' . $this->option_group, null )
                 );
             }
+
         }
 
         /**
          * Settings Page Content
          */
 
-        private function settings_page_content()
+        public function settings_page_content()
         {
             if ( !current_user_can( $this->settings_page[ 'capability' ] ) )
             {
@@ -271,7 +292,7 @@
         /**
          * Settings Header.
          */
-        private function settings_header()
+        public function settings_header()
         {
             ?>
             <div class="wpsf-settings__header">
@@ -290,7 +311,7 @@
         /**
          * Displays any errors from the WordPress settings API
          */
-        private function admin_notices()
+        public function admin_notices()
         {
             settings_errors();
         }
@@ -298,9 +319,10 @@
         /**
          * Enqueue scripts and styles
          */
-        private function admin_enqueue_scripts()
+        public function admin_enqueue_scripts()
         {
             // scripts
+
             wp_register_script( 'wpsf', $this->options_url . 'assets/js/main.js', array( 'jquery' ), false, true );
 
             wp_enqueue_script( 'jquery' );
@@ -318,18 +340,14 @@
             );
             wp_localize_script( 'wpsf', 'wpsf_vars', $data );
 
-            // styles
-            wp_register_style( 'wpsf', $this->options_url . 'assets/css/main.css' );
+            wp_register_style( 'wpsf-skin', $this->options_url . 'assets/css/main.css' );
+            wp_register_style( 'wpsf', $this->options_url . 'assets/css/main.css', array( 'wpsf-skin' ) );
 
             wp_enqueue_style( 'farbtastic' );
             wp_enqueue_style( 'thickbox' );
             wp_enqueue_style( 'jquery-ui-css' );
             wp_enqueue_style( 'wpsf' );
-
-            if ( $this->skin )
-            {
-                wp_enqueue_style( 'wpsf-skin', $this->options_url . 'assets/css/' . $this->skin . '.css' );
-            }
+            wp_add_inline_style( 'wpsf', $this->get_skin_styles() );
         }
 
         /**
@@ -339,7 +357,7 @@
          *
          * @return array
          */
-        private function settings_validate( $input )
+        public function settings_validate( $input )
         {
             return apply_filters( $this->option_group . '_settings_validate', $input );
         }
@@ -349,7 +367,7 @@
          *
          * @param array $args callback args from add_settings_section()
          */
-        private function section_intro( $args )
+        public function section_intro( $args )
         {
             if ( !empty( $this->settings ) )
             {
@@ -377,8 +395,9 @@
         /**
          * Processes $this->settings and adds the sections and fields via the WordPress settings API
          */
-        private function process_settings()
+        public function process_settings()
         {
+
             if ( !empty( $this->settings ) )
             {
                 usort( $this->settings, array( $this, 'sort_array' ) );
@@ -453,7 +472,7 @@
          *
          * @return int
          */
-        private function sort_array( $a, $b )
+        public function sort_array( $a, $b ): int
         {
             if ( !isset( $a[ 'section_order' ] ) )
             {
@@ -468,7 +487,7 @@
          *
          * @param array $args callback args from add_settings_field()
          */
-        private function generate_setting( $args )
+        public function generate_setting( $args )
         {
             $section = $args[ 'section' ];
             $this->setting_defaults = apply_filters( 'wpsf_defaults_' . $this->option_group, $this->setting_defaults );
@@ -497,7 +516,7 @@
          *
          * @param array $args
          */
-        private function do_field_method( $args )
+        public function do_field_method( $args )
         {
             $generate_field_method = sprintf( 'generate_%s_field', $args[ 'type' ] );
 
@@ -538,7 +557,7 @@
          *
          * @param array $args
          */
-        public function generate_number_field( $args )
+        private function generate_number_field( $args )
         {
             $args[ 'value' ] = esc_attr( stripslashes( $args[ 'value' ] ) );
 
@@ -789,7 +808,7 @@
                     $class = sprintf( 'wpsf-group__field-wrapper--%s', $subfield[ 'type' ] );
 
                     $row_template .= sprintf( '<div class="wpsf-group__field-wrapper %s">', $class );
-                    $row_template .= sprintf( '<label for="%s" class="wpsf-group__field-label">%s</label>', $subfield[ 'id' ], $subfield[ 'title' ] );
+                    $row_template .= sprintf( '<label for="%s" class="wpsf-group__field-label">%s</label>', $subfield[ 'id' ], $subfield[ 'title' ] ); /** @noinspection */
 
                     ob_start();
                     $this->do_field_method( $subfield );
@@ -818,7 +837,7 @@
          *
          * @param array $args Arguments.
          */
-        private function generate_select_field( $args )
+        private function generate_select_field( array $args )
         {
             $args[ 'value' ] = esc_html( esc_attr( $args[ 'value' ] ) );
 
@@ -853,7 +872,7 @@
          *
          * @param array $args
          */
-        private function generate_password_field( $args )
+        private function generate_password_field( array $args )
         {
             $args[ 'value' ] = esc_attr( stripslashes( $args[ 'value' ] ) );
 
@@ -867,7 +886,7 @@
          *
          * @param array $args
          */
-        private function generate_textarea_field( $args )
+        private function generate_textarea_field( array $args )
         {
             $args[ 'value' ] = esc_html( esc_attr( $args[ 'value' ] ) );
 
@@ -881,7 +900,7 @@
          *
          * @param array $args
          */
-        private function generate_radio_field( $args )
+        private function generate_radio_field( array $args )
         {
             $args[ 'value' ] = esc_html( esc_attr( $args[ 'value' ] ) );
 
@@ -901,7 +920,7 @@
          *
          * @param array $args
          */
-        private function generate_checkbox_field( $args )
+        private function generate_checkbox_field( array $args )
         {
             $args[ 'value' ] = esc_attr( stripslashes( $args[ 'value' ] ) );
             $checked = ( $args[ 'value' ] ) ? 'checked="checked"' : '';
@@ -915,7 +934,7 @@
          *
          * @param array $args
          */
-        private function generate_toggle_field( $args )
+        private function generate_toggle_field( array $args )
         {
             $args[ 'value' ] = esc_attr( stripslashes( $args[ 'value' ] ) );
             $checked = ( $args[ 'value' ] ) ? 'checked="checked"' : '';
@@ -930,7 +949,7 @@
          *
          * @param array $args
          */
-        private function generate_checkboxes_field( $args )
+        private function generate_checkboxes_field( array $args )
         {
             echo '<input type="hidden" name="' . $args[ 'name' ] . '" value="0" />';
 
@@ -954,7 +973,7 @@
          *
          * @param array $args
          */
-        private function generate_color_field( $args )
+        private function generate_color_field( array $args )
         {
             $color_picker_id = sprintf( '%s_cp', $args[ 'id' ] );
             $args[ 'value' ] = esc_attr( stripslashes( $args[ 'value' ] ) );
@@ -990,7 +1009,7 @@
          *
          * @param array $args
          */
-        private function generate_file_field( $args )
+        private function generate_file_field( array $args )
         {
             $args[ 'value' ] = esc_attr( $args[ 'value' ] );
             $button_id = sprintf( '%s_button', $args[ 'id' ] );
@@ -1071,7 +1090,7 @@
          *
          * @param array $args
          */
-        private function generate_editor_field( $args )
+        private function generate_editor_field( array $args )
         {
             wp_editor( $args[ 'value' ], $args[ 'id' ], array( 'textarea_name' => $args[ 'name' ] ) );
 
@@ -1083,7 +1102,7 @@
          *
          * @param array $args
          */
-        private function generate_code_editor_field( $args )
+        private function generate_code_editor_field( array $args )
         {
             printf(
                 '<textarea
@@ -1162,7 +1181,7 @@
          *
          * @param array $args
          */
-        private function generate_multiinputs_field( $args )
+        private function generate_multiinputs_field( array $args )
         {
             $field_titles = array_keys( $args[ 'default' ] );
             $values = array_values( $args[ 'value' ] );
@@ -1195,7 +1214,7 @@
          *
          * @return string
          */
-        private function generate_field_name( $id )
+        private function generate_field_name( $id ): string
         {
             return sprintf( '%s_settings[%s]', $this->option_group, $id );
         }
@@ -1203,9 +1222,9 @@
         /**
          * Generate: Description
          *
-         * @param mixed $description
+         * @param string $description
          */
-        private function generate_description( $description )
+        private function generate_description( string $description )
         {
             if ( $description && $description !== '' )
             {
@@ -1241,7 +1260,7 @@
          *
          * @return array
          */
-        public function get_settings()
+        public function get_settings(): array
         {
             $settings_name = $this->option_group . '_settings';
 
@@ -1289,7 +1308,7 @@
         /**
          * Tabless Settings sections
          */
-        private function do_tabless_settings_sections()
+        public function do_tabless_settings_sections()
         {
             ?>
             <div class="wpsf-section wpsf-tabless">
@@ -1301,7 +1320,7 @@
         /**
          * Tabbed Settings sections
          */
-        private function do_tabbed_settings_sections()
+        public function do_tabbed_settings_sections()
         {
             $i = 0;
             foreach ( $this->tabs as $tab_data )
@@ -1326,7 +1345,7 @@
         /**
          * Output the tab links
          */
-        private function tab_links()
+        public function tab_links()
         {
             if ( !apply_filters( 'wpsf_show_tab_links_' . $this->option_group, true ) )
             {
@@ -1417,8 +1436,11 @@
 
         /**
          * Add Show Hide Classes.
+         * @param array $args
+         * @param string $type
+         * @return string
          */
-        public static function add_show_hide_classes( $args, $type = 'show_if' )
+        public static function add_show_hide_classes( array $args, string $type = 'show_if' ): string
         {
             $class = '';
             $slug = ' ' . str_replace( '_', '-', $type );
@@ -1495,7 +1517,7 @@
         /**
          * Handle export settings action.
          */
-        public static function export_settings()
+        public function export_settings()
         {
             $_wpnonce = filter_input( INPUT_GET, '_wpnonce' );
             $option_group = filter_input( INPUT_GET, 'option_group' );
@@ -1523,7 +1545,7 @@
         /**
          * Import settings.
          */
-        private function import_settings()
+        public function import_settings()
         {
             $_wpnonce = filter_input( INPUT_POST, '_wpnonce' );
             $option_group = filter_input( INPUT_POST, 'option_group' );
@@ -1554,7 +1576,7 @@
     }
 
 
-    if ( !function_exists( 'sf_get_setting' ) )
+    if ( !function_exists( 'wpsf_get_setting' ) )
     {
         /**
          * Get a setting from an option group
@@ -1565,7 +1587,7 @@
          *
          * @return mixed
          */
-        function sf_get_setting( $option_group, $section_id, $field_id )
+        function wpsf_get_setting( $option_group, $section_id, $field_id )
         {
             $options = get_option( $option_group . '_settings' );
             if ( isset( $options[ $section_id . '_' . $field_id ] ) )
@@ -1577,14 +1599,14 @@
         }
     }
 
-    if ( !function_exists( 'sf_delete_settings' ) )
+    if ( !function_exists( 'wpsf_delete_settings' ) )
     {
         /**
          * Delete all the saved settings from a settings file/option group
          *
          * @param string $option_group
          */
-        function sf_delete_settings( $option_group )
+        function wpsf_delete_settings( $option_group )
         {
             delete_option( $option_group . '_settings' );
         }
