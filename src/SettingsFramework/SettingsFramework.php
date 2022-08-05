@@ -203,7 +203,7 @@
         /**
          * @return string
          */
-        public function get_skin_styles(): string
+        public function get_admin_color(): string
         {
             // styles
             global $_wp_admin_css_colors;
@@ -211,8 +211,8 @@
             $current_color = get_user_option( 'admin_color', get_current_user_id() );
 
             $color_val = array_key_exists( $current_color, $_wp_admin_css_colors )
-                ? $_wp_admin_css_colors[$current_color]->colors[ 2 ]
-                : $_wp_admin_css_colors['fresh']->colors[ 2 ];
+                ? $_wp_admin_css_colors[$current_color]->colors[ 1 ]
+                : $_wp_admin_css_colors['fresh']->colors[ 1 ];
 
             return '<style>
                 :root {
@@ -347,7 +347,7 @@
             wp_enqueue_style( 'thickbox' );
             wp_enqueue_style( 'jquery-ui-css' );
             wp_enqueue_style( 'wpsf' );
-            wp_add_inline_style( 'wpsf', $this->get_skin_styles() );
+            wp_add_inline_style( 'wpsf', $this->get_admin_color() );
         }
 
         /**
