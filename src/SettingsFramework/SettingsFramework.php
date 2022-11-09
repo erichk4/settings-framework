@@ -77,7 +77,7 @@
             'subfields'   => array(),
         );
 
-         /**
+        /**
          * @var mixed|null
          */
         private $caller;
@@ -211,8 +211,8 @@
             $current_color = get_user_option( 'admin_color', get_current_user_id() );
 
             $color_val = array_key_exists( $current_color, $_wp_admin_css_colors )
-                ? $_wp_admin_css_colors[$current_color]->colors[ 1 ]
-                : $_wp_admin_css_colors['fresh']->colors[ 1 ];
+                ? $_wp_admin_css_colors[ $current_color ]->colors[ 1 ]
+                : $_wp_admin_css_colors[ 'fresh' ]->colors[ 1 ];
 
             return '<style>
                 :root {
@@ -445,6 +445,8 @@
 
                                     $title = ( !empty( $field[ 'subtitle' ] ) ) ? sprintf( '%s %s<span class="wpsf-subtitle">%s</span>', $field[ 'title' ], $tooltip, $field[ 'subtitle' ] ) : sprintf( '%s %s', $field[ 'title' ], $tooltip );
 
+                                    $row_class = $field[ 'type' ] === 'hidden' ? 'hidden' : '';
+
                                     add_settings_field(
                                         $field[ 'id' ],
                                         $title,
@@ -454,6 +456,7 @@
                                         array(
                                             'section' => $section,
                                             'field'   => $field,
+                                            'class'   => $row_class
                                         )
                                     );
                                 }
@@ -808,7 +811,8 @@
                     $class = sprintf( 'wpsf-group__field-wrapper--%s', $subfield[ 'type' ] );
 
                     $row_template .= sprintf( '<div class="wpsf-group__field-wrapper %s">', $class );
-                    $row_template .= sprintf( '<label for="%s" class="wpsf-group__field-label">%s</label>', $subfield[ 'id' ], $subfield[ 'title' ] ); /** @noinspection */
+                    $row_template .= sprintf( '<label for="%s" class="wpsf-group__field-label">%s</label>', $subfield[ 'id' ], $subfield[ 'title' ] );
+                    /** @noinspection */
 
                     ob_start();
                     $this->do_field_method( $subfield );
