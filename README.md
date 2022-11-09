@@ -99,11 +99,11 @@ The settings files work by filling the global `$wpsf_settings` array with data i
 ```php
 add_filter( 'wpsf_register_settings_prefix_settings_general', 'prefix_settings_general_settings' );
 
-function wpsf_woo3d_settings( prefix_settings_general_settings )
+function prefix_settings_general_settings( $settings )
 {
 
         // Tabs.
-        $woo3d_settings[ 'tabs' ] = array(
+        $settings[ 'tabs' ] = array(
             array(
                 'id'    => 'tab1',
                 'title' => esc_html__( 'Tab1', 'domain' ),
@@ -114,7 +114,7 @@ function wpsf_woo3d_settings( prefix_settings_general_settings )
             ),
         );
 	
-	$wpsf_settings[] = array(
+	$settings[] = array(
 	    'tab_id' => 'tab1', 
 	    'section_id' => 'general', // The section ID (required)
 	    'section_title' => 'General Settings', // The section title (required)
@@ -146,6 +146,8 @@ function wpsf_woo3d_settings( prefix_settings_general_settings )
 
 	    )
 	);
+	
+	return $settings;
     
 }
 
