@@ -1239,7 +1239,7 @@
         {
             do_action( 'wpsf_before_settings_' . $this->option_group );
             ?>
-            <form action="options.php" method="post" novalidate enctype="multipart/form-data">
+            <form id="wpsf_form" action="options.php" method="post" novalidate enctype="multipart/form-data">
                 <?php do_action( 'wpsf_before_settings_fields_' . $this->option_group ); ?>
                 <?php settings_fields( $this->option_group ); ?>
 
