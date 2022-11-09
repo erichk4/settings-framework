@@ -414,7 +414,7 @@
                         {
                             foreach ( $section[ 'fields' ] as $field )
                             {
-                                if ( isset( $field[ 'id' ] ) && $field[ 'id' ] && isset( $field[ 'title' ] ) )
+                                if ( isset( $field[ 'id' ] ) && $field[ 'id' ] )
                                 {
                                     $tooltip = '';
 
@@ -443,7 +443,14 @@
                                         }
                                     }
 
-                                    $title = ( !empty( $field[ 'subtitle' ] ) ) ? sprintf( '%s %s<span class="wpsf-subtitle">%s</span>', $field[ 'title' ], $tooltip, $field[ 'subtitle' ] ) : sprintf( '%s %s', $field[ 'title' ], $tooltip );
+                                    if ( isset( $field[ 'title' ] ) )
+                                    {
+                                        $title = ( !empty( $field[ 'subtitle' ] ) ) ? sprintf( '%s %s<span class="wpsf-subtitle">%s</span>', $field[ 'title' ], $tooltip, $field[ 'subtitle' ] ) : sprintf( '%s %s', $field[ 'title' ], $tooltip );
+                                    }
+                                    else
+                                    {
+                                        $title = '';
+                                    }
 
                                     $row_class = $field[ 'type' ] === 'hidden' ? 'hidden' : '';
 
