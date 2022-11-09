@@ -33,8 +33,11 @@ class SFTest {
 		$this->plugin_path = plugin_dir_path( __FILE__ );
 
 		// Create a new SettingsFramework
-		$this->settings = new SettingsFramework( $this->plugin_path . 'settings/settings-general.php', 'prefix_settings_general' );
-
+		$this->settings = new SettingsFramework(
+			$this->plugin_path . 'settings/settings-general.php', // the settings file
+			'prefix_settings_general',                            // the option group
+			$this );                                              // the caller object 
+		
 		// Add admin menu
 		add_action( 'admin_menu', array( $this, 'add_settings_page' ), 20 );
 		
@@ -94,37 +97,59 @@ The Settings Files
 The settings files work by filling the global `$wpsf_settings` array with data in the following format:
 
 ```php
-$wpsf_settings[] = array(
-    'section_id' => 'general', // The section ID (required)
-    'section_title' => 'General Settings', // The section title (required)
-    'section_description' => 'Some intro description about this section.', // The section description (optional)
-    'section_order' => 5, // The order of the section (required)
-    'fields' => array(
-        array(
-            'id' => 'text',
-            'title' => 'Text',
-            'desc' => 'This is a description.',
-            'placeholder' => 'This is a placeholder.',
-            'type' => 'text',
-            'default' => 'This is the default value'
-        ),
-        array(
-            'id' => 'select',
-            'title' => 'Select',
-            'desc' => 'This is a description.',
-            'type' => 'select',
-            'default' => 'green',
-            'choices' => array(
-                'red' => 'Red',
-                'green' => 'Green',
-                'blue' => 'Blue'
-            )
-        ),
+add_filter( 'wpsf_register_settings_prefix_settings_general', 'prefix_settings_general_settings' );
 
-        // add as many fields as you need...
+function wpsf_woo3d_settings( prefix_settings_general_settings )
+{
 
-    )
-);
+        // Tabs.
+        $woo3d_settings[ 'tabs' ] = array(
+            array(
+                'id'    => 'tab1',
+                'title' => esc_html__( 'Tab1', 'domain' ),
+            ),
+            array(
+                'id'    => 'tab2',
+                'title' => esc_html__( 'Tab2', 'domain' ),
+            ),
+        );
+	
+	$wpsf_settings[] = array(
+	    'tab_id' => 'tab1', 
+	    'section_id' => 'general', // The section ID (required)
+	    'section_title' => 'General Settings', // The section title (required)
+	    'section_description' => 'Some intro description about this section.', // The section description (optional)
+	    'section_order' => 5, // The order of the section (required)
+	    'fields' => array(
+		array(
+		    'id' => 'text',
+		    'title' => 'Text',
+		    'desc' => 'This is a description.',
+		    'placeholder' => 'This is a placeholder.',
+		    'type' => 'text',
+		    'default' => 'This is the default value'
+		),
+		array(
+		    'id' => 'select',
+		    'title' => 'Select',
+		    'desc' => 'This is a description.',
+		    'type' => 'select',
+		    'default' => 'green',
+		    'choices' => array(
+			'red' => 'Red',
+			'green' => 'Green',
+			'blue' => 'Blue'
+		    )
+		),
+
+		// add as many fields as you need...
+
+	    )
+	);
+    
+}
+
+
 ```
 
 Valid `fields` values are:
