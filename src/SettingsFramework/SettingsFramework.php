@@ -6,7 +6,7 @@
      * @author       Gilbert Pellegrom
      * @author       James Kemp
      * @link         https://github.com/erichk4/WordPress-Setings-Framework
-     * @version      1.0.2
+     * @version      1.0.6
      * @license      GPL 2.0
      */
 
@@ -82,6 +82,12 @@
          */
         private $caller;
 
+        /**
+         * @access private
+         * @var array
+         */
+        private static array $options;
+
 
         /**
          * SettingsFramework constructor.
@@ -95,24 +101,24 @@
             $this->option_group = $option_group;
             $this->caller = $caller;
 
+            if ( empty( $this->option_group ) )
+            {
+                wp_die( '<h3>Option Group is missing</h3>SettingsFramework->' . __FUNCTION__ );
+            }
+
             if ( $settings_file )
             {
                 if ( !is_file( $settings_file ) )
                 {
-                    return;
+                    wp_die( '<h3>Settings file not found</h3>SettingsFramework->' . __FUNCTION__ );
                 }
 
                 require_once $settings_file;
 
-                if ( !$this->option_group )
+                /*if ( !$this->option_group )
                 {
                     $this->option_group = preg_replace( '/[^a-z0-9]+/i', '', basename( $settings_file, '.php' ) );
-                }
-            }
-
-            if ( empty( $this->option_group ) )
-            {
-                return;
+                }*/
             }
 
             $this->options_path = plugin_dir_path( __FILE__ );
@@ -148,6 +154,8 @@
                 add_action( 'wp_ajax_wpsf_export_settings', array( $this, 'export_settings' ) );
                 add_action( 'wp_ajax_wpsf_import_settings', array( $this, 'import_settings' ) );
             }
+
+            self::$options = $this->get_settings( true );
         }
 
 
@@ -322,6 +330,10 @@
         public function admin_enqueue_scripts()
         {
             // scripts
+            // select2
+            wp_enqueue_script( 'select2', $this->options_url . 'assets/js/select2/select2.min.js', array( 'jquery' ), false, true );
+            wp_enqueue_style( 'select2', $this->options_url . 'assets/js/select2/select2.min.css' );
+
 
             wp_register_script( 'wpsf', $this->options_url . 'assets/js/main.js', array( 'jquery' ), false, true );
 
@@ -850,9 +862,12 @@
          */
         private function generate_select_field( array $args )
         {
-            $args[ 'value' ] = esc_html( esc_attr( $args[ 'value' ] ) );
+            if ( !is_array( $args[ 'value' ] ) )
+            {
+                $args[ 'value' ] = array( esc_html( esc_attr( $args[ 'value' ] ) ) );
+            }
 
-            echo '<select name="' . esc_attr( $args[ 'name' ] ) . '" id="' . esc_attr( $args[ 'id' ] ) . '" class="' . esc_attr( $args[ 'class' ] ) . '">';
+            echo '<select ' . ( $args[ 'multiple' ] ? 'multiple="multiple" ' : '' ) . 'name="' . esc_attr( $args[ 'name' ] ) . ( $args[ 'multiple' ] ? '[]' : '' ) . '" id="' . esc_attr( $args[ 'id' ] ) . '" class="' . sanitize_html_class( $args[ 'class' ] ) . ( $args[ 'multiple' ] ? 'wpsf-select2' : '' ) . '">';
 
             foreach ( $args[ 'choices' ] as $value => $text )
             {
@@ -868,8 +883,7 @@
                     continue;
                 }
 
-                $selected = ( strval( $value ) === $args[ 'value' ] ) ? 'selected="selected"' : '';
-
+                $selected = ( in_array( $value, $args[ 'value' ] ) ? 'selected="selected"' : '' );
                 echo sprintf( '<option value="%s" %s>%s</option>', esc_attr( $value ), esc_html( $selected ), esc_html( $text ) );
             }
 
@@ -1103,7 +1117,11 @@
          */
         private function generate_editor_field( array $args )
         {
-            wp_editor( $args[ 'value' ], $args[ 'id' ], array( 'textarea_name' => $args[ 'name' ] ) );
+            $editor_settings = array( 'textarea_name' => $args[ 'name' ] );
+
+            $editor_settings = array_merge( $args[ 'editor_settings' ], $editor_settings );
+
+            wp_editor( $args[ 'value' ], $args[ 'id' ], $editor_settings );
 
             $this->generate_description( $args[ 'desc' ] );
         }
@@ -1271,12 +1289,13 @@
          *
          * @return array
          */
-        public function get_settings(): array
+        public function get_settings( $unprefixed = false ): array
         {
             $settings_name = $this->option_group . '_settings';
 
             // "cache" $settings array
             static $settings = array();
+            static $settings_raw = array();
 
             if ( isset( $settings[ $settings_name ] ) )
             {
@@ -1305,15 +1324,20 @@
                     if ( isset( $saved_settings[ $setting_key ] ) )
                     {
                         $settings[ $settings_name ][ $setting_key ] = $saved_settings[ $setting_key ];
+                        $settings_raw[ $field[ 'id' ] ] = $saved_settings[ $setting_key ];
                     }
                     else
                     {
                         $settings[ $settings_name ][ $setting_key ] = ( isset( $field[ 'default' ] ) ) ? $field[ 'default' ] : false;
+                        $settings_raw[ $field[ 'id' ] ] = $settings[ $settings_name ][ $setting_key ];
                     }
                 }
             }
 
-            return $settings[ $settings_name ];
+            if ( $unprefixed )
+                return $settings_raw;
+            else
+                return $settings[ $settings_name ];
         }
 
         /**
@@ -1583,6 +1607,24 @@
             update_option( $option_group . '_settings', $settings_data );
 
             wp_send_json_success();
+        }
+
+        /**
+         * wpsf get option
+         *
+         * @param $section_id
+         * @param $field_id
+         * @param mixed $default
+         * @return bool|mixed
+         */
+        public static function get_option( $field_id, $default = false )
+        {
+            if ( isset( self::$options[ $field_id ] ) && !empty( self::$options[ $field_id ] ) )
+            {
+                return self::$options[ $field_id ];
+            }
+
+            return $default;
         }
     }
 

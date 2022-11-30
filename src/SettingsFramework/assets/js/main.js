@@ -1,5 +1,7 @@
 (function( $, document ) {
 
+	$('.wpsf-select2').select2();
+
 	var wpsf = {
 
 		cache: function() {
