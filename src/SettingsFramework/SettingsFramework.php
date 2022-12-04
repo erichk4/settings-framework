@@ -6,7 +6,7 @@
      * @author       Gilbert Pellegrom
      * @author       James Kemp
      * @link         https://github.com/erichk4/WordPress-Setings-Framework
-     * @version      1.0.6
+     * @version      1.0.7
      * @license      GPL 2.0
      */
 
@@ -83,23 +83,33 @@
         private $caller;
 
         /**
+         * Classicpress support
+         *
+         * @var bool
+         */
+        private $cp_security_page;
+
+        /**
          * @access private
          * @var array
          */
         private static array $options;
 
-
         /**
          * SettingsFramework constructor.
          *
          * @param null|string $settings_file Path to a settings file, or null if you pass the option_group manually and construct your settings with a filter.
-         * @param bool|string $option_group Option group name, usually a short slug.
+         * @param bool|string $option_group Option group name, usually a short slug. Hint: for ClassicPress Security page support use the plugins slug as option group!
          * @param null|object $caller Caller object
+         * @param bool $add_to_cp_security Add the settings page the ClassisPress "Security" Menu
          */
-        public function __construct( $settings_file = null, $option_group = false, $caller = null )
+        public function __construct( $settings_file = null, $option_group = false, $caller = null, $add_to_cp_security = false )
         {
+            global $cp_version;
+
             $this->option_group = $option_group;
             $this->caller = $caller;
+            $this->cp_security_page = isset( $cp_version ) && $add_to_cp_security;
 
             if ( empty( $this->option_group ) )
             {
@@ -186,7 +196,14 @@
                 $this->settings = $this->settings_wrapper;
             }
 
-            $this->settings_page[ 'slug' ] = sprintf( '%s-settings', str_replace( '_', '-', $this->option_group ) );
+            if ( $this->cp_security_page )
+            {
+                $this->settings_page[ 'slug' ] = str_replace( '_', '-', $this->option_group );
+            }
+            else
+            {
+                $this->settings_page[ 'slug' ] = sprintf( '%s-settings', str_replace( '_', '-', $this->option_group ) );
+            }
         }
 
         /**
@@ -251,7 +268,16 @@
             $this->settings_page[ 'icon' ] = $args[ 'icon' ];
             $this->settings_page[ 'capability' ] = $args[ 'capability' ];
 
-            if ( $args[ 'parent_slug' ] )
+            if ( $this->cp_security_page )
+            {
+                add_security_page(
+                    $this->settings_page[ 'title' ],
+                    $args[ 'menu_title' ],
+                    $this->settings_page[ 'slug' ],
+                    array( $this, 'settings_page_content' )
+                );
+            }
+            elseif ( $args[ 'parent_slug' ] )
             {
                 add_submenu_page(
                     $args[ 'parent_slug' ],
